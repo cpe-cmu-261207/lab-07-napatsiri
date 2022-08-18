@@ -8,13 +8,65 @@ import {
 } from "@tabler/icons";
 
 export default function Home() {
-  const deleteTodo = (idx) => {};
+  const [todos, setTodo] = useState([]);
+  const [isFirstRender, setIsFirstRender] = useState(true);
 
-  const markTodo = (idx) => {};
+  useEffect(() => {
+    if (isFirstRender) {
+      setIsFirstRender(false);
+      return;
+    }
+    const todosStr = JSON.stringify(todos);
+    localStorage.setItem("todo-react", todosStr);
+  }, [todos]);
 
-  const moveUp = (idx) => {};
+  useEffect(() => {
+    const todoStr = localStorage.getItem("todo-react");
+    if (!todoStr) setTodo([]);
+    else setTodo(JSON.parse(todoStr));
+  }, []);
 
-  const moveDown = (idx) => {};
+  const deleteTodo = (idx) => {
+    todos.splice(idx, 1);
+    // const newTodo = { ...todos };
+    setTodo([...todos]);
+  };
+
+  const markTodo = (idx) => {
+    todos[idx].completed = !todos[idx].completed;
+    setTodo([...todos]);
+  };
+
+  const moveUp = (idx) => {
+    if (idx == 0) return;
+    let temp = todos[idx];
+    todos[idx] = todos[idx - 1];
+    todos[idx - 1] = temp;
+    setTodo([...todos]);
+  };
+
+  const moveDown = (idx) => {
+    if (idx == todos.length - 1) return;
+    let temp = todos[idx];
+    todos[idx] = todos[idx + 1];
+    todos[idx + 1] = temp;
+    setTodo([...todos]);
+  };
+
+  const addTodo = (title, completed) => {
+    setTodo([{ title: title, completed: completed }, ...todos]);
+  };
+
+  const handleInput = (event) => {
+    if (event.key == "Enter") {
+      if (event.target.value === "") {
+        alert("Todo cannot be empty");
+        return;
+      }
+      addTodo(event.target.value, false);
+      event.target.value = "";
+    }
+  };
 
   return (
     <div>
@@ -28,40 +80,34 @@ export default function Home() {
         <input
           className="form-control mb-1 fs-4"
           placeholder="insert todo here..."
+          onKeyUp={handleInput}
         />
-        {/* Todos */}
-        {/* Example 1 */}
-        <div className="border-bottom p-1 py-2 fs-2 d-flex gap-2">
-          <span className="me-auto">Todo</span>
-        </div>
-        {/* Example 2 */}
-        <div className="border-bottom p-1 py-2 fs-2 d-flex gap-2">
-          <span className="me-auto">Todo with buttons</span>
-
-          <button className="btn btn-success">
-            <IconCheck />
-          </button>
-          <button className="btn btn-secondary">
-            <IconArrowUp />
-          </button>
-          <button className="btn btn-secondary">
-            <IconArrowDown />
-          </button>
-          <button className="btn btn-danger">
-            <IconTrash />
-          </button>
-        </div>
+        {todos.map((element, index) => (
+          <Todo
+            key={index}
+            title={element.title}
+            completed={element.completed}
+            onMark={() => markTodo(index)}
+            onDelete={() => deleteTodo(index)}
+            onMoveUp={() => moveUp(index)}
+            onMoveDown={() => moveDown(index)}
+          />
+        ))}
 
         {/* summary section */}
         <p className="text-center fs-4">
-          <span className="text-primary">All (2) </span>
-          <span className="text-warning">Pending (2) </span>
-          <span className="text-success">Completed (0)</span>
+          <span className="text-primary">All ({todos.length}) </span>
+          <span className="text-warning">
+            Pending ({todos.filter((el) => el.completed == false).length})
+          </span>
+          <span className="text-success">
+            Completed ({todos.filter((el) => el.completed == true).length})
+          </span>
         </p>
 
         {/* Made by section */}
         <p className="text-center mt-3 text-muted fst-italic">
-          made by Chayanin Suatap 12345679
+          made by Napatsiri Phetsri 640612181
         </p>
       </div>
     </div>
